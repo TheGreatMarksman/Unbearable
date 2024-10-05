@@ -11,8 +11,19 @@ class Enemy {
         this.type = type;
         this.xPos = xPos;
         this.yPos = yPos;
+        this.imgPath = "pacmanGhost.png";
     }
-
+    draw() {
+        let drawing = new Image();
+        drawing.src = "./assets/sprites/" + this.imgPath;
+        let x = this.xPos;
+        let y = this.yPos;
+        drawing.onload = function() {
+            ctx.drawImage(drawing, x, y, 50, 50);
+            console.log(x+ " " + y);
+        };
+        
+    }
 }
 function setUp(){
     canvas = document.getElementById("canvas");
@@ -21,10 +32,13 @@ function setUp(){
     canvas.height = SCREEN_HEIGHT;
 }
 
+
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 
+let ghost = new Enemy("pacmanGhost", 10,10);
 setUp();
 drawScreen();
+ghost.draw();
