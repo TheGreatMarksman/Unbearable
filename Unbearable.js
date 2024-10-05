@@ -1,11 +1,15 @@
 'use strict';
 
-const SCREEN_WIDTH = Math.floor(window.innerWidth - (window.innerWidth % 15));
-const SCREEN_HEIGHT = Math.floor(window.innerHeight - (window.innerHeight % 15));
+let initWidth = Math.floor(window.innerWidth * 0.9);
+let initHeight = Math.floor(window.innerHeight * 0.9);
+
+const SCREEN_WIDTH = Math.floor(initWidth - (initWidth % 15));
+const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 15));
 const CHARACTER_WIDTH = Math.floor(SCREEN_WIDTH / 15);
 const CHARACTER_HEIGHT = CHARACTER_WIDTH;
 
-document.querySelector('#game').style.width=`${SCREEN_WIDTH}`;
+document.querySelector('#game').style.width=`${SCREEN_WIDTH}px`;
+document.querySelector('#game').style.height=`${SCREEN_HEIGHT}px`;
 
 var player;
 var canvas;
