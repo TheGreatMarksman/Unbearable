@@ -1,0 +1,18 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+
+#game{
+    width: 90%;
+    height: 70%;
+    border: 1px solid black;
+    margin: auto;
+    overflow: hidden;
+}
+
+
+#canvas{
+    display: block;
+    position: relative;
+}
