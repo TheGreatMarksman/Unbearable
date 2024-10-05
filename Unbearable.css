@@ -4,8 +4,8 @@
 }
 
 #game{
-    width: 90%;
-    height: 70%;
+    width: 90vw;
+    height: 90vh;
     border: 1px solid black;
     margin: auto;
     overflow: hidden;

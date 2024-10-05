@@ -1,7 +1,10 @@
 'use strict';
 
-const SCREEN_WIDTH = 1500;
-const SCREEN_HEIGHT = 800;
+const SCREEN_WIDTH = window.innerWidth - (window.innerWidth % 15);
+const SCREEN_HEIGHT = window.innerHeight - (window.innerHeight % 15);
+const CHARACTER_WIDTH = SCREEN_WIDTH / 15;
+const CHARACTER_HEIGHT = CHARACTER_WIDTH;
+
 
 var player;
 var canvas;
@@ -51,6 +54,8 @@ function setUp(){
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
     player = new MainCharacter("assets/sprites/TheBear.png", 50, 50);
+    console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
+    console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
 }
 
 function drawScreen(){
