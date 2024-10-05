@@ -1,10 +1,11 @@
 'use strict';
 
-const SCREEN_WIDTH = window.innerWidth - (window.innerWidth % 15);
-const SCREEN_HEIGHT = window.innerHeight - (window.innerHeight % 15);
-const CHARACTER_WIDTH = SCREEN_WIDTH / 15;
+const SCREEN_WIDTH = Math.floor(window.innerWidth - (window.innerWidth % 15));
+const SCREEN_HEIGHT = Math.floor(window.innerHeight - (window.innerHeight % 15));
+const CHARACTER_WIDTH = Math.floor(SCREEN_WIDTH / 15);
 const CHARACTER_HEIGHT = CHARACTER_WIDTH;
 
+document.querySelector('#game').style.width=`${SCREEN_WIDTH}`;
 
 var player;
 var canvas;
@@ -14,18 +15,44 @@ class MainCharacter{
     constructor(link, xPos, yPos){
         this.xPos=xPos;
         this.yPos=yPos;
+        this.width= CHARACTER_WIDTH;
+        this.height= CHARACTER_HEIGHT;
 
         this.image = new Image();
         this.image.src = link;
-    }
 
-    draw(){
-        ctx.drawImage(this.image,this.xPos,this.yPos,50,50);
+        //outside draw() so image is drawn once fully loaded and not repeatedly everytime function is called
         this.image.onload = () => {
-            // Call draw once the image is loaded
             this.draw();
         };
     }
+
+    draw(){
+        
+        if (this.image.complete){
+            ctx.drawImage(this.image,this.xPos,this.yPos,this.width,this.height);
+        }
+        
+    }
+
+    move(dx,dy){//dx is change in x, dy is change in y
+        console.log('xpos+width'+(this.xPos+this.width));
+        console.log('screen width'+SCREEN_WIDTH); 
+        console.log('character width'+CHARACTER_WIDTH);
+        this.xPos+=dx;
+        this.yPos+=dy;
+
+
+
+        //make character stay within bound
+        if(this.xPos<0) this.xPos=0;
+        if(this.yPos<0) this.yPos=0;
+        if(this.xPos + this.width > SCREEN_WIDTH) this.xPos= SCREEN_WIDTH-this.width;
+        if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
+    }
+
+
+   
 }
 
 class Enemy {
@@ -43,7 +70,7 @@ class Enemy {
         let y = this.yPos;
         drawing.onload = function() {
             ctx.drawImage(drawing, x, y, 50, 50);
-            console.log(x+ " " + y);
+            //console.log(x+ " " + y);
         };
     }
 }
@@ -52,9 +79,12 @@ function setUp(){
     ctx = canvas.getContext("2d");
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
-    player = new MainCharacter("assets/sprites/TheBear.png", 50, 50);
-    console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
-    console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
+    player = new MainCharacter("assets/sprites/TheBear.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
+    //console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
+    //console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
+
+    requestAnimationFrame(gameLoop);//start loop 
+    window.addEventListener('keydown',keyMovement);//for keydown events
 }
 
 function drawScreen(){
@@ -65,3 +95,29 @@ let ghost = new Enemy("pacmanGhost", 10,10);
 setUp();
 drawScreen();
 ghost.draw();
+
+
+function gameLoop(){
+    drawScreen();
+    requestAnimationFrame(gameLoop);//request for the next frame
+}
+
+//handles the action due to key presses
+function keyMovement(event){
+    const speed=6;
+
+    switch(event.key){
+        case 'w'://move up
+            player.move(0,-speed);
+            break;
+        case 'a'://move left
+            player.move(-speed,0);
+            break;
+        case 's'://move right
+            player.move(0,speed);
+            break;
+        case 'd'://move down
+            player.move(speed,0);
+            break;
+    }
+}
