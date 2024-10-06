@@ -9,6 +9,9 @@ const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 14));
 var CHARACTER_WIDTH;
 var CHARACTER_HEIGHT;
 
+// var gameOverImage = new image();
+// gameOverImage.src= "assets/sprites/endgame.png"
+
 let tileWidth = Math.floor(SCREEN_WIDTH / 14);
 let tileHeight = Math.floor(SCREEN_HEIGHT / 7);
 if(tileWidth > tileHeight){
@@ -110,6 +113,8 @@ class MainCharacter{
     decreaseHealth() {
         if (this.health > 0) {
             this.health -= 0.1;  // Gradually decrease health
+        }else {
+            gameEnd=true;
         }
     }
 
@@ -455,8 +460,11 @@ function setUp(){
     // Generate 2 apples
     generateApples(1);
 
+    // gameOverImage.onload = () => {
+    //     requestAnimationFrame(gameLoop);//start loop 
+    // }
 
-    requestAnimationFrame(gameLoop);//start loop 
+    requestAnimationFrame(gameLoop);//start loop
     window.addEventListener('keydown',keyMovementDown);//for keydown events
     window.addEventListener('keyup',keyMovementUp);//for keyup events
 
@@ -466,7 +474,8 @@ function setUp(){
 
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+    ctx.fillStyle= 'rgb(15,205,94)';
+    ctx.fillRect(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
     map.draw();
 
     player.draw();
@@ -481,6 +490,8 @@ function drawScreen(){
     enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
     drawEnemies();
+
+    
 }
 
 
