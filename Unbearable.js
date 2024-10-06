@@ -162,12 +162,6 @@ class MainCharacter{
         }
 
 
-        //to prioritize certain movement
-        if (direction.up) this.yPos-= speedMain;
-        else if (direction.down) this.yPos+=speedMain;
-        else if (direction.left) this.xPos-=speedMain;
-        else if (direction.right) this.xPos+=speedMain;
-
 
         //make character stay within bound
         if(this.xPos<0) this.xPos=0;
@@ -270,20 +264,26 @@ function generateApples(numApples) {
 }
 
 function checkCollisionWithApples() {
-    apples.forEach((apple, index) => {
+    
+
+    // Iterate backwards to safely remove items while iterating
+    for (let i = apples.length - 1; i >= 0; i--) {
+        let apple = apples[i];
         if (
             player.xPos < apple.xPos + apple.width &&
             player.xPos + player.width > apple.xPos &&
             player.yPos < apple.yPos + apple.height &&
             player.yPos + player.height > apple.yPos
         ) {
-            // Collision detected, remove the apple and increase hunger
-            apples.splice(index, 1); // Remove the apple from the array
+            // Collision detected, remove the apple and replenish health
+            apples.splice(i, 1); // Remove the apple from the array
             player.replenishHealth();  // Replenish player's health
             console.log(`Health replenished to full`);
-            
+
+            // Generate a new apple to maintain 2 apples on screen
+            generateApples(1);
         }
-    });
+    }
 }
 
 class Enemy {
@@ -452,8 +452,8 @@ function setUp(){
  
     
 
-    // Generate 4 apples
-    generateApples(4);
+    // Generate 2 apples
+    generateApples(1);
 
 
     requestAnimationFrame(gameLoop);//start loop 
@@ -506,9 +506,11 @@ function gameLoop(){
     if(enemyAnimationCounter == 30) {
         enemyAnimationCounter = 0;
     }
+
     moveEnemies();
     player.move();
 
+    //decrease health overtime
     player.decreaseHealth();
 
     checkCollisionWithApples(); // Check if the player collides with any apples
