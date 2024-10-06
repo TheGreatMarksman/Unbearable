@@ -142,6 +142,38 @@ class Enemy {
     }
 }
 
+class Map{
+    constructor(tiles){
+        this.tiles = [];
+        for(let i = 0; i < tiles.length; i++)
+            this.tiles[i] = tiles[i];
+    }
+    draw(){
+        for(let i = 0; i < this.tiles.length; i++)
+            this.tiles[i].draw();
+    }
+}
+
+class Tile{
+    constructor(link, xPos, yPos){
+        this.link = link;
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.width = CHARACTER_WIDTH;
+        this.height = CHARACTER_HEIGHT;
+        this.image = new Image();
+        this.image.src = link;        
+        this.image.onload = () => {
+            this.draw();
+        };
+    }
+    draw(){
+        if (this.image.complete){
+            ctx.drawImage(this.image,this.xPos,this.yPos,this.width,this.height);
+        }
+    }
+}
+
 function drawEnemies() {
     enemies.forEach((e)=>e.draw());
 }
