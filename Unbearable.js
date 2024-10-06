@@ -31,6 +31,8 @@ class MainCharacter{
         this.width= CHARACTER_WIDTH;
         this.height= CHARACTER_HEIGHT;
 
+        this.hunger=0;
+
         this.image = new Image();
         this.image.src = link;
 
@@ -48,6 +50,7 @@ class MainCharacter{
         this.image.onload = () => {
             this.draw();
         };
+
     }
 
 
@@ -56,7 +59,7 @@ class MainCharacter{
         
         if (this.image.complete) {
             // Calculate the position of the current frame in the sprite sheet
-            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth;git//X position in sprite sheet
+            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth;//X position in sprite sheet
             const sy = this.directionRow* this.frameHeight;//Y position based on the movement direction
             
             // Draw the current frame from the sprite sheet
@@ -112,6 +115,117 @@ class MainCharacter{
    
 }
 
+class Item{
+    constructor(link,xPos, yPos) {
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.width = CHARACTER_WIDTH; // Apples are the same size as the character
+        this.height = CHARACTER_HEIGHT;
+        
+
+        // Sprite image details (2x2 grid)
+        this.frameHeight = 32; // height of a single frame
+        this.frameWidth = 32;  // width of a single frame
+        this.numFrames = 4;    // 2 frames per row
+        this.frameIndex = 0;
+        this.framesPerRow = 2; // 2 frames in each row
+
+        this.frameCounter = 0; // To control animation speed
+
+        this.image = new Image();
+        this.image.src = link; // an item image
+
+        this.image.onload = () => {
+            this.draw();
+        };
+    }
+
+    draw() {
+        if (this.image.complete) {
+
+            // Calculate the position of the current frame in the sprite sheet
+            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth; // X position in sprite sheet
+            const sy = Math.floor(this.frameIndex / this.framesPerRow) * this.frameHeight; // Y position based on frame row
+
+            ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight,this.xPos, this.yPos,this.width,this.height);
+        }
+    }
+
+    updateFrame() {
+        this.frameCounter++;
+        if (this.frameCounter >= 20) { // Adjust this value to control animation speed
+            this.frameIndex = (this.frameIndex + 1) % this.numFrames; // Cycle through 4 frames
+            this.frameCounter = 0;
+        }
+    }
+
+}
+
+let apples = []; // To store the apple objects
+
+function generateApples(numApples) {
+    // for (let i = 0; i < numApples; i++) {//loop through to display each apple
+    //     let xPos = Math.floor(Math.random() * (SCREEN_WIDTH - CHARACTER_WIDTH));
+    //     let yPos = Math.floor(Math.random() * (SCREEN_HEIGHT - CHARACTER_HEIGHT));
+    //     apples.push(new Item("assets/sprites/appleSprites.png",xPos, yPos));// Add a new apple at a random position
+    // }
+    for (let i = 0; i < numApples; i++) {
+        let xPos, yPos;
+        let overlapping;
+
+        // Ensure apples do not spawn overlapping the player or other apples
+        do {
+            overlapping = false;
+            xPos = Math.floor(Math.random() * (SCREEN_WIDTH - CHARACTER_WIDTH));
+            yPos = Math.floor(Math.random() * (SCREEN_HEIGHT - CHARACTER_HEIGHT));
+
+            // Check overlap with player
+            if (
+                player &&
+                player.xPos < xPos + CHARACTER_WIDTH &&
+                player.xPos + player.width > xPos &&
+                player.yPos < yPos + CHARACTER_HEIGHT &&
+                player.yPos + player.height > yPos
+            ) {
+                overlapping = true;
+                continue;
+            }
+
+            // Check overlap with existing apples
+            for (let apple of apples) {
+                if (
+                    apple.xPos < xPos + CHARACTER_WIDTH &&
+                    apple.xPos + apple.width > xPos &&
+                    apple.yPos < yPos + CHARACTER_HEIGHT &&
+                    apple.yPos + apple.height > yPos
+                ) {
+                    overlapping = true;
+                    break;
+                }
+            }
+        } while (overlapping);
+
+        apples.push(new Item("assets/sprites/appleSprites.png", xPos, yPos)); // Ensure the correct image path
+    }
+
+}
+
+function checkCollisionWithApples() {
+    apples.forEach((apple, index) => {
+        if (
+            player.xPos < apple.xPos + apple.width &&
+            player.xPos + player.width > apple.xPos &&
+            player.yPos < apple.yPos + apple.height &&
+            player.yPos + player.height > apple.yPos
+        ) {
+            // Collision detected, remove the apple and increase hunger
+            apples.splice(index, 1); // Remove the apple from the array
+            player.hunger++;// Increase hunger
+            console.log(`Hunger: ${player.hunger}`); // Log hunger for debugging
+        }
+    });
+}
+
 class Enemy {
     //img path should be determined by type
     constructor(type, xPos, yPos) {
@@ -131,6 +245,7 @@ class Enemy {
         };
     }
 }
+
 function setUp(){
     canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
@@ -138,6 +253,9 @@ function setUp(){
     canvas.height = SCREEN_HEIGHT;
     player = new MainCharacter("assets/sprites/bearSprites.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
     
+
+    // Generate 4 apples
+    generateApples(4);
 
     requestAnimationFrame(gameLoop);//start loop 
     window.addEventListener('keydown',keyMovementDown);//for keydown events
@@ -147,7 +265,12 @@ function setUp(){
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     player.draw();
+
+    apples.forEach(apple => {
+        apple.draw();
+    });
 }
+
 let ghost = new Enemy("pacmanGhost", 10,10);
 setUp();
 drawScreen();
@@ -156,6 +279,13 @@ ghost.draw();
 
 function gameLoop(){
     player.move();
+    checkCollisionWithApples(); // Check if the player collides with any apples
+
+    // Update apple animations
+    apples.forEach(apple => {
+        apple.updateFrame();
+    });
+
     drawScreen();
     requestAnimationFrame(gameLoop);//request for the next frame
 }
