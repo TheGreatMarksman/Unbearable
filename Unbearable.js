@@ -113,9 +113,9 @@ function setUp(){
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
     player = new MainCharacter("assets/sprites/TheBear.png", 50, 50);
-    enemies[0] = new Enemy("default", 10,10,1);
-    enemies[1] = new Enemy("default", 10,50,1);
-    enemies[2] = new Enemy("default", 50,10,1);
+    enemies[0] = new Enemy("default", 10,10,5);
+    enemies[1] = new Enemy("default", 10,50,5);
+    enemies[2] = new Enemy("default", 50,10,5);
     drawEnemies();
     requestAnimationFrame(onTimerTick);
 }
