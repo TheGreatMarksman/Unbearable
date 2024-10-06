@@ -36,6 +36,8 @@ class MainCharacter{
         this.width= CHARACTER_WIDTH;
         this.height= CHARACTER_HEIGHT;
 
+        this.hunger=0;
+
         this.image = new Image();
         this.image.src = link;
 
@@ -53,6 +55,7 @@ class MainCharacter{
         this.image.onload = () => {
             this.draw();
         };
+
     }
 
 
@@ -114,6 +117,117 @@ class MainCharacter{
         if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
     }
   
+}
+
+class Item{
+    constructor(link,xPos, yPos) {
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.width = CHARACTER_WIDTH; // Apples are the same size as the character
+        this.height = CHARACTER_HEIGHT;
+        
+
+        // Sprite image details (2x2 grid)
+        this.frameHeight = 32; // height of a single frame
+        this.frameWidth = 32;  // width of a single frame
+        this.numFrames = 4;    // 2 frames per row
+        this.frameIndex = 0;
+        this.framesPerRow = 2; // 2 frames in each row
+
+        this.frameCounter = 0; // To control animation speed
+
+        this.image = new Image();
+        this.image.src = link; // an item image
+
+        this.image.onload = () => {
+            this.draw();
+        };
+    }
+
+    draw() {
+        if (this.image.complete) {
+
+            // Calculate the position of the current frame in the sprite sheet
+            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth; // X position in sprite sheet
+            const sy = Math.floor(this.frameIndex / this.framesPerRow) * this.frameHeight; // Y position based on frame row
+
+            ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight,this.xPos, this.yPos,this.width,this.height);
+        }
+    }
+
+    updateFrame() {
+        this.frameCounter++;
+        if (this.frameCounter >= 20) { // Adjust this value to control animation speed
+            this.frameIndex = (this.frameIndex + 1) % this.numFrames; // Cycle through 4 frames
+            this.frameCounter = 0;
+        }
+    }
+
+}
+
+let apples = []; // To store the apple objects
+
+function generateApples(numApples) {
+    // for (let i = 0; i < numApples; i++) {//loop through to display each apple
+    //     let xPos = Math.floor(Math.random() * (SCREEN_WIDTH - CHARACTER_WIDTH));
+    //     let yPos = Math.floor(Math.random() * (SCREEN_HEIGHT - CHARACTER_HEIGHT));
+    //     apples.push(new Item("assets/sprites/appleSprites.png",xPos, yPos));// Add a new apple at a random position
+    // }
+    for (let i = 0; i < numApples; i++) {
+        let xPos, yPos;
+        let overlapping;
+
+        // Ensure apples do not spawn overlapping the player or other apples
+        do {
+            overlapping = false;
+            xPos = Math.floor(Math.random() * (SCREEN_WIDTH - CHARACTER_WIDTH));
+            yPos = Math.floor(Math.random() * (SCREEN_HEIGHT - CHARACTER_HEIGHT));
+
+            // Check overlap with player
+            if (
+                player &&
+                player.xPos < xPos + CHARACTER_WIDTH &&
+                player.xPos + player.width > xPos &&
+                player.yPos < yPos + CHARACTER_HEIGHT &&
+                player.yPos + player.height > yPos
+            ) {
+                overlapping = true;
+                continue;
+            }
+
+            // Check overlap with existing apples
+            for (let apple of apples) {
+                if (
+                    apple.xPos < xPos + CHARACTER_WIDTH &&
+                    apple.xPos + apple.width > xPos &&
+                    apple.yPos < yPos + CHARACTER_HEIGHT &&
+                    apple.yPos + apple.height > yPos
+                ) {
+                    overlapping = true;
+                    break;
+                }
+            }
+        } while (overlapping);
+
+        apples.push(new Item("assets/sprites/appleSprites.png", xPos, yPos)); // Ensure the correct image path
+    }
+
+}
+
+function checkCollisionWithApples() {
+    apples.forEach((apple, index) => {
+        if (
+            player.xPos < apple.xPos + apple.width &&
+            player.xPos + player.width > apple.xPos &&
+            player.yPos < apple.yPos + apple.height &&
+            player.yPos + player.height > apple.yPos
+        ) {
+            // Collision detected, remove the apple and increase hunger
+            apples.splice(index, 1); // Remove the apple from the array
+            player.hunger++;// Increase hunger
+            console.log(`Hunger: ${player.hunger}`); // Log hunger for debugging
+        }
+    });
 }
 
 class Enemy {
@@ -243,6 +357,13 @@ function setUp(){
     drawEnemies();
 
 
+    
+ 
+    
+
+    // Generate 4 apples
+    generateApples(4);
+
     requestAnimationFrame(gameLoop);//start loop 
     window.addEventListener('keydown',keyMovementDown);//for keydown events
     window.addEventListener('keyup',keyMovementUp);//for keyup events
@@ -254,10 +375,18 @@ function setUp(){
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     player.draw();
+
+
+    apples.forEach(apple => {
+        apple.draw();
+    });
     loops++;
     enemyAnimationCounter++;
     drawEnemies();
 }
+
+
+
 
 setUp();
 //drawScreen();
@@ -273,6 +402,13 @@ function gameLoop(){
     }
     moveEnemies();
     player.move();
+    checkCollisionWithApples(); // Check if the player collides with any apples
+
+    // Update apple animations
+    apples.forEach(apple => {
+        apple.updateFrame();
+    });
+
     drawScreen();
     //if colliding with an enemy, break out of the gameloop
     if(checkEnemyCollisions() == true) {
