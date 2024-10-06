@@ -49,16 +49,12 @@ class MainCharacter{
     }
 
     move(){
-        // console.log('xpos+width'+(this.xPos+this.width));
-        // console.log('screen width'+SCREEN_WIDTH); 
-        // console.log('character width'+CHARACTER_WIDTH);
-        // this.xPos+=dx;
-        // this.yPos+=dy;
-
+        
+        //to prioritize certain movement
         if (direction.up) this.yPos-= speed;
-        if (direction.down) this.yPos+=speed;
-        if (direction.left) this.xPos-=speed;
-        if (direction.right) this.xPos+=speed;
+        else if (direction.down) this.yPos+=speed;
+        else if (direction.left) this.xPos-=speed;
+        else if (direction.right) this.xPos+=speed;
 
 
         //make character stay within bound
@@ -97,8 +93,7 @@ function setUp(){
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
     player = new MainCharacter("assets/sprites/TheBear.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
-    //console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
-    //console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
+    
 
     requestAnimationFrame(gameLoop);//start loop 
     window.addEventListener('keydown',keyMovementDown);//for keydown events
@@ -121,7 +116,7 @@ function gameLoop(){
     requestAnimationFrame(gameLoop);//request for the next frame
 }
 
-//handles the action due to key presses
+//handles the action due to key presses down
 function keyMovementDown(event){
     
 
@@ -141,6 +136,7 @@ function keyMovementDown(event){
     }
 }
 
+//handles the action due to key presses up
 function keyMovementUp(event){
 
     switch(event.key){
