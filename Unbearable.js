@@ -1,31 +1,75 @@
 'use strict';
 
-const SCREEN_WIDTH = window.innerWidth - (window.innerWidth % 15);
-const SCREEN_HEIGHT = window.innerHeight - (window.innerHeight % 15);
-const CHARACTER_WIDTH = SCREEN_WIDTH / 15;
+let initWidth = Math.floor(window.innerWidth * 0.9);
+let initHeight = Math.floor(window.innerHeight * 0.9);
+
+const SCREEN_WIDTH = Math.floor(initWidth - (initWidth % 15));
+const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 15));
+const CHARACTER_WIDTH = Math.floor(SCREEN_WIDTH / 15);
 const CHARACTER_HEIGHT = CHARACTER_WIDTH;
 
+document.querySelector('#game').style.width=`${SCREEN_WIDTH}px`;
+document.querySelector('#game').style.height=`${SCREEN_HEIGHT}px`;
 
 var player;
 var canvas;
 var ctx;
 
+const speed=1;
+
+let direction = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+}
+
 class MainCharacter{
     constructor(link, xPos, yPos){
         this.xPos=xPos;
         this.yPos=yPos;
+        this.width= CHARACTER_WIDTH;
+        this.height= CHARACTER_HEIGHT;
 
         this.image = new Image();
         this.image.src = link;
-    }
 
-    draw(){
-        ctx.drawImage(this.image,this.xPos,this.yPos,50,50);
+        //outside draw() so image is drawn once fully loaded and not repeatedly everytime function is called
         this.image.onload = () => {
-            // Call draw once the image is loaded
             this.draw();
         };
     }
+
+    draw(){
+        
+        if (this.image.complete){
+            ctx.drawImage(this.image,this.xPos,this.yPos,this.width,this.height);
+        }
+        
+    }
+
+    move(){
+        // console.log('xpos+width'+(this.xPos+this.width));
+        // console.log('screen width'+SCREEN_WIDTH); 
+        // console.log('character width'+CHARACTER_WIDTH);
+        // this.xPos+=dx;
+        // this.yPos+=dy;
+
+        if (direction.up) this.yPos-= speed;
+        if (direction.down) this.yPos+=speed;
+        if (direction.left) this.xPos-=speed;
+        if (direction.right) this.xPos+=speed;
+
+
+        //make character stay within bound
+        if(this.xPos<0) this.xPos=0;
+        if(this.yPos<0) this.yPos=0;
+        if(this.xPos + this.width > SCREEN_WIDTH) this.xPos= SCREEN_WIDTH-this.width;
+        if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
+    }
+
+
+   
 }
 
 class Enemy {
@@ -43,7 +87,7 @@ class Enemy {
         let y = this.yPos;
         drawing.onload = function() {
             ctx.drawImage(drawing, x, y, 50, 50);
-            console.log(x+ " " + y);
+            //console.log(x+ " " + y);
         };
     }
 }
@@ -52,9 +96,13 @@ function setUp(){
     ctx = canvas.getContext("2d");
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
-    player = new MainCharacter("assets/sprites/TheBear.png", 50, 50);
-    console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
-    console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
+    player = new MainCharacter("assets/sprites/TheBear.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
+    //console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
+    //console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
+
+    requestAnimationFrame(gameLoop);//start loop 
+    window.addEventListener('keydown',keyMovementDown);//for keydown events
+    window.addEventListener('keyup',keyMovementUp);//for keyup events
 }
 
 function drawScreen(){
@@ -65,3 +113,48 @@ let ghost = new Enemy("pacmanGhost", 10,10);
 setUp();
 drawScreen();
 ghost.draw();
+
+
+function gameLoop(){
+    player.move();
+    drawScreen();
+    requestAnimationFrame(gameLoop);//request for the next frame
+}
+
+//handles the action due to key presses
+function keyMovementDown(event){
+    
+
+    switch(event.key){
+        case 'w'://move up
+            direction.up= true;
+            break;
+        case 'a'://move left
+            direction.left= true;
+            break;
+        case 's'://move down
+            direction.down= true;
+            break;
+        case 'd'://move right
+            direction.right= true;
+            break;
+    }
+}
+
+function keyMovementUp(event){
+
+    switch(event.key){
+        case 'w'://stop moving up
+            direction.up=false;
+            break;
+        case 'a'://stop moving left
+            direction.left=false;
+            break;
+        case 's'://stop moving down
+            direction.down=false;
+            break;
+        case 'd'://stop moving right
+            direction.right=false;
+            break;
+    }
+}
