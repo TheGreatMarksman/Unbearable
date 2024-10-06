@@ -15,6 +15,7 @@ var player;
 var enemies = [3];
 var canvas;
 var ctx;
+var map;
 
 var oldTimeStamp;
 
@@ -191,6 +192,8 @@ function setUp(){
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
 
+    map = new Map(makeTiles());
+
     enemies[0] = new Enemy("default", 10,10,1);
     enemies[1] = new Enemy("default", 10,50,1);
     enemies[2] = new Enemy("default", 50,10,1);
@@ -199,6 +202,7 @@ function setUp(){
 
     player = new MainCharacter("assets/sprites/TheBear.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
     
+
 
     requestAnimationFrame(gameLoop);//start loop 
     window.addEventListener('keydown',keyMovementDown);//for keydown events
@@ -210,6 +214,9 @@ function setUp(){
 let loops = 0;
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    
+    map.draw();
+
     player.draw();
     loops++;
     //every 10 loops, enemies choose a new direction
@@ -272,3 +279,16 @@ function keyMovementUp(event){
     }
 }
 
+function makeTiles(){
+    let grassPicture = "assets/sprites/grassSprites.png";
+    let treePicture = "assets/sprites/treeSprites.png";
+    let waterPicture = "assets/sprites/waterSprites.png";
+    let cavePicture = "assets/sprites/caveSprites.png";
+    // Each mapString line is two rows of the map
+    // mapString: 0: grass, 1: tree, 3: water, 4: cave
+    let mapString = "000000001011111110001000101010041011101033333000101110000000";
+    mapString += "011010001011111011100000101010000010001000101010001113331000";
+    mapString += "010110001110100000000043111110010010000100000101110001013331000";
+    mapString += "0101101100111000000001013131000000010010000000111111010101010";
+    // not finished
+}
