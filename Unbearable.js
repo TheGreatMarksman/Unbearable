@@ -23,6 +23,7 @@ var oldTimeStamp;
 
 const speed=5;
 const speedMain=2;
+const MAX_HEALTH=100;
 
 
 let direction = {
@@ -38,7 +39,8 @@ class MainCharacter{
         this.yPos=yPos;
         this.width= CHARACTER_WIDTH;
         this.height= CHARACTER_HEIGHT;
-
+        this.maxHealth=MAX_HEALTH;
+        this.health=this.maxHealth;
         this.hunger=0;
 
         this.image = new Image();
@@ -61,7 +63,40 @@ class MainCharacter{
 
     }
 
+    drawHealthBar(){
+        const healthBarHeight=CHARACTER_HEIGHT/4;
+        const healthBarWidth=CHARACTER_WIDTH;
+        const outlineColor= 'black';
+        const fillColor= 'red';
 
+        //calculating health
+        const healthPercentage= Math.max(0, this.health / this.maxHealth); //to keep it between 0 and 1
+        const currentHealthWidth= healthPercentage*healthBarWidth;
+
+        //the position of health bar
+        const xBarPos=10;
+        const yBarPos=10;
+
+        //drawing outline
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeRect(xBarPos,yBarPos,healthBarWidth,healthBarHeight);
+
+        //drawing fill
+        ctx.fillStyle= fillColor;
+        ctx.fillRect(xBarPos,yBarPos,currentHealthWidth,healthBarHeight);
+
+    }
+
+    // Method to decrease health over time
+    decreaseHealth() {
+        if (this.health > 0) {
+            this.health -= 0.1;  // Gradually decrease health
+        }
+    }
+
+    replenishHealth(){
+        this.health=this.maxHealth;
+    }
 
     draw(){
         
@@ -75,8 +110,10 @@ class MainCharacter{
             ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, this.xPos, this.yPos, this.width, this.height);
         }
 
+        this.drawHealthBar();
 
     }
+
 
     move(){
 
@@ -223,8 +260,9 @@ function checkCollisionWithApples() {
         ) {
             // Collision detected, remove the apple and increase hunger
             apples.splice(index, 1); // Remove the apple from the array
-            player.hunger++;// Increase hunger
-            console.log(`Hunger: ${player.hunger}`); // Log hunger for debugging
+            player.replenishHealth();  // Replenish player's health
+            console.log(`Health replenished to full`);
+            
         }
     });
 }
@@ -412,6 +450,9 @@ function gameLoop(){
     }
     moveEnemies();
     player.move();
+
+    player.decreaseHealth();
+
     checkCollisionWithApples(); // Check if the player collides with any apples
 
     // Update apple animations
