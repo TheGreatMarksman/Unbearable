@@ -11,15 +11,16 @@ const CHARACTER_HEIGHT = CHARACTER_WIDTH;
 document.querySelector('#game').style.width=`${SCREEN_WIDTH}px`;
 document.querySelector('#game').style.height=`${SCREEN_HEIGHT}px`;
 
+var loops = 0;
 var player;
 var enemies = [3];
 var canvas;
 var ctx;
-
+var enemyAnimationCounter = 0;
 var oldTimeStamp;
 
 
-const speed=1;
+const speed=5;
 
 let direction = {
     up: false,
@@ -53,6 +54,7 @@ class MainCharacter{
             this.draw();
         };
     }
+
 
 
     draw(){
@@ -98,6 +100,7 @@ class MainCharacter{
         }
 
         
+
         //to prioritize certain movement
         if (direction.up) this.yPos-= speed;
         else if (direction.down) this.yPos+=speed;
@@ -111,9 +114,7 @@ class MainCharacter{
         if(this.xPos + this.width > SCREEN_WIDTH) this.xPos= SCREEN_WIDTH-this.width;
         if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
     }
-
-
-   
+  
 }
 
 class Enemy {
@@ -130,7 +131,7 @@ class Enemy {
         this.height = CHARACTER_HEIGHT;
         switch(type) {
             case "default":
-                this.imgPath = "pacmanGhost.png";
+                this.imgPath = "blackBearSprites.png";
         }
         this.image.src = "./assets/sprites/"+this.imgPath;
         this.image.onload = () => {
@@ -138,8 +139,20 @@ class Enemy {
         };
     }
     draw() {
-
-        ctx.drawImage(this.image,this.xPos,this.yPos,this.width,this.height);
+        //if moving east
+        var frame = Math.floor(enemyAnimationCounter/10);
+        if(this.xSpeed > 0) {
+            ctx.drawImage(this.image,0 + frame * 32,32*3, 32,32, this.xPos,this.yPos, this.width,this.height);
+        }
+        if(this.xSpeed < 0){
+            ctx.drawImage(this.image,0 + frame * 32,32, 32,32, this.xPos,this.yPos, this.width,this.height);
+        }
+        if(this.ySpeed < 0) {
+            ctx.drawImage(this.image,0 + frame * 32,2*32, 32,32, this.xPos,this.yPos, this.width,this.height);
+        }
+        if(this.ySpeed > 0){
+            ctx.drawImage(this.image,0 + frame * 32 ,0, 32,32, this.xPos,this.yPos, this.width,this.height);
+        }
     }
     //the enemy chooses which direction it will move in
     chooseMove(){
@@ -171,18 +184,11 @@ class Enemy {
         this.xPos += this.xSpeed;
         this.yPos += this.ySpeed;
         //if out of bounds, reset location (player gets stuck at walls)
-        if(this.xPos > SCREEN_WIDTH) {
-            this.xPos = SCREEN_WIDTH;
-        }
-        if(this.xPos < CHARACTER_WIDTH) {
-            this.xPos = CHARACTER_WIDTH;
-        }
-        if(this.yPos > SCREEN_HEIGHT){
-            this.yPos = SCREEN_HEIGHT;
-        }
-        if(this.yPos < CHARACTER_HEIGHT){
-            this.yPos = CHARACTER_HEIGHT;
-        }
+        if(this.xPos<0) this.xPos=0;
+        if(this.yPos<0) this.yPos=0;
+        if(this.xPos + this.width > SCREEN_WIDTH) this.xPos= SCREEN_WIDTH-this.width;
+        if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
+        
     }
 }
 
@@ -223,18 +229,14 @@ function setUp(){
 }
 
 
-let loops = 0;
+
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     player.draw();
     loops++;
+    enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
-    if(loops == 50) {
-        chooseEnemiesMove();
-        loops = 0;
-    }
-    moveEnemies();
-    drawEnemies();
+    drawEnemies(loops);
 }
 
 setUp();
@@ -242,8 +244,15 @@ drawScreen();
 
 
 
-
 function gameLoop(){
+    if(loops == 50) {
+        chooseEnemiesMove();
+        loops = 0;
+    }
+    if(enemyAnimationCounter == 30) {
+        enemyAnimationCounter = 0;
+    }
+    moveEnemies();
     player.move();
     drawScreen();
     requestAnimationFrame(gameLoop);//request for the next frame
