@@ -3,10 +3,26 @@
 let initWidth = Math.floor(window.innerWidth * 0.9);
 let initHeight = Math.floor(window.innerHeight * 0.9);
 
-const SCREEN_WIDTH = Math.floor(initWidth - (initWidth % 15));
-const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 15));
-const CHARACTER_WIDTH = Math.floor(SCREEN_WIDTH / 15);
-const CHARACTER_HEIGHT = CHARACTER_WIDTH;
+const SCREEN_WIDTH = Math.floor(initWidth - (initWidth % 14));
+const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 14));
+
+var CHARACTER_WIDTH;
+var CHARACTER_HEIGHT;
+
+let tileWidth = Math.floor(SCREEN_WIDTH / 14);
+let tileHeight = Math.floor(SCREEN_HEIGHT / 7);
+if(tileWidth > tileHeight){
+    CHARACTER_HEIGHT = tileHeight;
+    CHARACTER_WIDTH = CHARACTER_HEIGHT
+}
+else{
+    CHARACTER_WIDTH = tileWidth;
+    CHARACTER_HEIGHT = CHARACTER_WIDTH;
+}
+
+console.log("screen: " + SCREEN_WIDTH + ", " + SCREEN_HEIGHT);
+console.log("character: " + CHARACTER_WIDTH + ", " + CHARACTER_HEIGHT);
+
 
 document.querySelector('#game').style.width=`${SCREEN_WIDTH}px`;
 document.querySelector('#game').style.height=`${SCREEN_HEIGHT}px`;
@@ -16,6 +32,9 @@ var player;
 var enemies = [3];
 var canvas;
 var ctx;
+var map;
+
+
 var enemyAnimationCounter = 0;
 var oldTimeStamp;
 
@@ -316,6 +335,37 @@ class Enemy {
     }
 }
 
+class Map{
+    constructor(tiles){
+        this.tiles = [];
+        for(let i = 0; i < tiles.length; i++)
+            this.tiles[i] = tiles[i];
+    }
+    draw(){
+        for(let i = 0; i < this.tiles.length; i++)
+            this.tiles[i].draw();
+    }
+}
+
+class Tile{
+    constructor(link, xPos, yPos){
+        this.link = link;
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.width = CHARACTER_WIDTH;
+        this.height = CHARACTER_HEIGHT;
+        this.image = new Image();
+        this.image.src = link;        
+        this.image.onload = () => {
+            this.draw();
+        };
+    }
+    draw(){
+        if (this.image.complete){
+            ctx.drawImage(this.image, 0, 0, 32, 32, this.xPos,this.yPos,this.width,this.height);
+        }
+    }
+}
 
 
 function drawEnemies() {
@@ -347,12 +397,16 @@ function setUp(){
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
 
+    map = new Map(makeTiles());
+
+   
     player = new MainCharacter("assets/sprites/bearSprites.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
 
 
     enemies[0] = new Enemy("default", 1000,1000,1);
     enemies[1] = new Enemy("default", 1000,1000,1);
     enemies[2] = new Enemy("default", 1000,1100,1);
+
     drawEnemies();
 
 
@@ -362,6 +416,7 @@ function setUp(){
 
     // Generate 4 apples
     generateApples(4);
+
 
     requestAnimationFrame(gameLoop);//start loop 
     window.addEventListener('keydown',keyMovementDown);//for keydown events
@@ -373,6 +428,9 @@ function setUp(){
 
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    
+    map.draw();
+
     player.draw();
 
 
@@ -467,3 +525,56 @@ function keyMovementUp(event){
     }
 }
 
+function makeTiles(){
+    let tiles = [];
+
+    let grassPicture = "assets/sprites/grassSprites.png";
+    let treePicture = "assets/sprites/treeSprites.png";
+    let waterPicture = "assets/sprites/waterSprites.png";
+    let cavePicture = "assets/sprites/caveSprites.png";
+    // Each mapString line is two rows of the map
+    // mapString: 0: grass, 1: tree, 3: water, 4: cave
+    let mapString = "00010000000000";
+    mapString += "01010101111010";
+    mapString += "00000100133010";
+    mapString += "01110140101010";
+    mapString += "01300000001000";
+    mapString += "01311101101110";
+    mapString += "00000000100000";    
+    
+    /*
+    let mapString = "000000001011111110001000101010041011101033333000101110000000";
+    mapString += "011010001011111011100000101010000010001000101010001113331000";
+    mapString += "010110001110100000000043111110010010000100000101110001013331000";
+    mapString += "0101101100111000000001013131000000010010000000111111010101010";
+    mapString += "011011010330100100001010101010000000000330100101101010000010";
+    mapString += "011110010000110101101011011110 033311110400010100000001000000";
+    mapString += "033300000100010111111101003333 033311110111000000000101103333";
+    mapString += "000000010000000333330000003333";
+    */
+    // this one's shorter because there's an odd number of rows (15)
+
+    for(let i = 0; i < mapString.length; i++){
+        if(mapString.charAt(i) == 0){
+            tiles.push(new Tile(grassPicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+        }
+        else if(mapString.charAt(i) == 1){
+            tiles.push(new Tile(treePicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+        }
+        else if(mapString.charAt(i) == 3){
+            tiles.push(new Tile(waterPicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+        }
+        else if(mapString.charAt(i) == 4){
+            tiles.push(new Tile(cavePicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+        }
+    }
+    return tiles;
+}
+
+function toTileX(stringIndex){
+    return (stringIndex % 14);
+}
+
+function toTileY(stringIndex){
+    return (Math.floor(stringIndex / 14));
+}
