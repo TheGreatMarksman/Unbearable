@@ -62,7 +62,7 @@ class MainCharacter{
         
         if (this.image.complete) {
             // Calculate the position of the current frame in the sprite sheet
-            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth;git//X position in sprite sheet
+            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth;//X position in sprite sheet
             const sy = this.directionRow* this.frameHeight;//Y position based on the movement direction
             
             // Draw the current frame from the sprite sheet
