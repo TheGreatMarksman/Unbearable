@@ -20,8 +20,10 @@ var enemyAnimationCounter = 0;
 var oldTimeStamp;
 
 
+
 const speed=5;
 const speedMain=2;
+
 
 let direction = {
     up: false,
@@ -103,7 +105,6 @@ class MainCharacter{
             
         }
 
-        
 
         //to prioritize certain movement
         if (direction.up) this.yPos-= speedMain;
@@ -243,6 +244,7 @@ class Enemy {
         switch(type) {
             case "default":
                 this.imgPath = "blackBearSprites.png";
+                break;
         }
         this.image.src = "./assets/sprites/"+this.imgPath;
         this.image.onload = () => {
@@ -301,7 +303,20 @@ class Enemy {
         if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
         
     }
+    checkCollisions() {
+        //sens is is the sensitity of the collision detection - smaller sens == collision from farther away, vice versa
+        var sens = 10;
+        if(Math.abs(this.xPos - player.xPos + sens) <= CHARACTER_WIDTH && Math.abs(this.yPos - player.yPos + sens) <=CHARACTER_HEIGHT) {
+            console.log("collision with enemy");
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
+
+
 
 function drawEnemies() {
     enemies.forEach((e)=>e.draw());
@@ -315,6 +330,17 @@ function chooseEnemiesMove(){
     enemies.forEach((e)=> e.chooseMove());
 }
 
+function checkEnemyCollisions() {
+    var shouldEnd = false;
+    enemies.forEach((e) => {
+        if(e.checkCollisions() == true) {
+            console.log("should end gameloop here.");
+            shouldEnd = true;
+        }
+    });
+    return shouldEnd;
+
+}
 function setUp(){
     canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
@@ -324,9 +350,9 @@ function setUp(){
     player = new MainCharacter("assets/sprites/bearSprites.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
 
 
-    enemies[0] = new Enemy("default", 10,10,1);
-    enemies[1] = new Enemy("default", 10,50,1);
-    enemies[2] = new Enemy("default", 50,10,1);
+    enemies[0] = new Enemy("default", 1000,1000,1);
+    enemies[1] = new Enemy("default", 1000,1000,1);
+    enemies[2] = new Enemy("default", 1000,1100,1);
     drawEnemies();
 
 
@@ -354,6 +380,7 @@ function drawScreen(){
         apple.draw();
     });
 
+
     loops++;
     enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
@@ -364,11 +391,17 @@ function drawScreen(){
 
 
 
+
+
 setUp();
 drawScreen();
 
 
 
+setUp();
+//drawScreen();
+
+var gameEnd = false;
 function gameLoop(){
     if(loops == 50) {
         chooseEnemiesMove();
@@ -387,13 +420,19 @@ function gameLoop(){
     });
 
     drawScreen();
-    requestAnimationFrame(gameLoop);//request for the next frame
+    //if colliding with an enemy, break out of the gameloop
+    if(checkEnemyCollisions() == true) {
+        console.log("setting gameEnd to true");
+        gameEnd = true;
+    }
+    console.log("gameEnd value: " + gameEnd);
+    if(!gameEnd) {
+        requestAnimationFrame(gameLoop);//request for the next frame
+    }
 }
 
 //handles the action due to key presses down
 function keyMovementDown(event){
-    
-
     switch(event.key){
         case 'w'://move up
             direction.up= true;
@@ -412,7 +451,6 @@ function keyMovementDown(event){
 
 //handles the action due to key presses up
 function keyMovementUp(event){
-
     switch(event.key){
         case 'w'://stop moving up
             direction.up=false;
