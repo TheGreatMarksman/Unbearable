@@ -15,6 +15,15 @@ var player;
 var canvas;
 var ctx;
 
+const speed=1;
+
+let direction = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+}
+
 class MainCharacter{
     constructor(link, xPos, yPos){
         this.xPos=xPos;
@@ -39,13 +48,17 @@ class MainCharacter{
         
     }
 
-    move(dx,dy){//dx is change in x, dy is change in y
-        console.log('xpos+width'+(this.xPos+this.width));
-        console.log('screen width'+SCREEN_WIDTH); 
-        console.log('character width'+CHARACTER_WIDTH);
-        this.xPos+=dx;
-        this.yPos+=dy;
+    move(){
+        // console.log('xpos+width'+(this.xPos+this.width));
+        // console.log('screen width'+SCREEN_WIDTH); 
+        // console.log('character width'+CHARACTER_WIDTH);
+        // this.xPos+=dx;
+        // this.yPos+=dy;
 
+        if (direction.up) this.yPos-= speed;
+        if (direction.down) this.yPos+=speed;
+        if (direction.left) this.xPos-=speed;
+        if (direction.right) this.xPos+=speed;
 
 
         //make character stay within bound
@@ -88,7 +101,8 @@ function setUp(){
     //console.log(CHARACTER_WIDTH + " " + CHARACTER_HEIGHT);
 
     requestAnimationFrame(gameLoop);//start loop 
-    window.addEventListener('keydown',keyMovement);//for keydown events
+    window.addEventListener('keydown',keyMovementDown);//for keydown events
+    window.addEventListener('keyup',keyMovementUp);//for keyup events
 }
 
 function drawScreen(){
@@ -102,26 +116,45 @@ ghost.draw();
 
 
 function gameLoop(){
+    player.move();
     drawScreen();
     requestAnimationFrame(gameLoop);//request for the next frame
 }
 
 //handles the action due to key presses
-function keyMovement(event){
-    const speed=6;
+function keyMovementDown(event){
+    
 
     switch(event.key){
         case 'w'://move up
-            player.move(0,-speed);
+            direction.up= true;
             break;
         case 'a'://move left
-            player.move(-speed,0);
+            direction.left= true;
             break;
-        case 's'://move right
-            player.move(0,speed);
+        case 's'://move down
+            direction.down= true;
             break;
-        case 'd'://move down
-            player.move(speed,0);
+        case 'd'://move right
+            direction.right= true;
+            break;
+    }
+}
+
+function keyMovementUp(event){
+
+    switch(event.key){
+        case 'w'://stop moving up
+            direction.up=false;
+            break;
+        case 'a'://stop moving left
+            direction.left=false;
+            break;
+        case 's'://stop moving down
+            direction.down=false;
+            break;
+        case 'd'://stop moving right
+            direction.right=false;
             break;
     }
 }
