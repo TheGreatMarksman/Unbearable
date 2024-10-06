@@ -38,21 +38,65 @@ class MainCharacter{
         this.image = new Image();
         this.image.src = link;
 
+        //sprite image
+        this.frameHeight= 32;//height of single frame
+        this.frameWidth= 32;//width of single frame
+        this.numFrames= 16;//total number of frames
+        this.frameIndex= 0;
+        this.framesPerRow= 4;
+        this.directionRow=0;
+        
+        this.frameCounter=0;//to count the frame
+
         //outside draw() so image is drawn once fully loaded and not repeatedly everytime function is called
         this.image.onload = () => {
             this.draw();
         };
     }
 
+
     draw(){
         
-        if (this.image.complete){
-            ctx.drawImage(this.image,this.xPos,this.yPos,this.width,this.height);
-        }
         
+        if (this.image.complete) {
+            // Calculate the position of the current frame in the sprite sheet
+            const sx = (this.frameIndex % this.framesPerRow) * this.frameWidth;git//X position in sprite sheet
+            const sy = this.directionRow* this.frameHeight;//Y position based on the movement direction
+            
+            // Draw the current frame from the sprite sheet
+            ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, this.xPos, this.yPos, this.width, this.height);
+        }
+
+
     }
 
     move(){
+
+        if (direction.up){
+            this.directionRow = 2; //the 3rd row of sprite sheet
+            this.yPos -= speed;
+        }else if (direction.down){
+            this.directionRow = 0; //the 1st row of sprite sheet
+            this.yPos += speed;
+        } else if (direction.right){
+            this.directionRow = 3; //the 4th row of the sprite sheet
+            this.xPos += speed;
+
+        } else if (direction.left){
+            this.directionRow = 1; //the 2nd row of the sprite sheet
+            this.xPos -= speed;
+        }
+
+        
+        if (direction.up || direction.down || direction.left || direction.right) {
+            this.frameCounter++;
+            if (this.frameCounter == 10){// cycle through based on counter
+                this.frameIndex = (this.frameIndex + 1) % this.framesPerRow;// Cycle through 4 frames
+                this.frameCounter=0;
+            }
+            
+        }
+
         
         //to prioritize certain movement
         if (direction.up) this.yPos-= speed;
@@ -159,13 +203,17 @@ function setUp(){
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
 
+    player = new MainCharacter("assets/sprites/bearSprites.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
+
+
     enemies[0] = new Enemy("default", 10,10,1);
     enemies[1] = new Enemy("default", 10,50,1);
     enemies[2] = new Enemy("default", 50,10,1);
     drawEnemies();
 
 
-    player = new MainCharacter("assets/sprites/TheBear.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
+    
+ 
     
 
     requestAnimationFrame(gameLoop);//start loop 
