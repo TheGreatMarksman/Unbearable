@@ -21,6 +21,7 @@ var oldTimeStamp;
 
 
 const speed=5;
+const speedMain=2;
 
 let direction = {
     up: false,
@@ -79,17 +80,17 @@ class MainCharacter{
 
         if (direction.up){
             this.directionRow = 2; //the 3rd row of sprite sheet
-            this.yPos -= speed;
+            this.yPos -= speedMain;
         }else if (direction.down){
             this.directionRow = 0; //the 1st row of sprite sheet
-            this.yPos += speed;
+            this.yPos += speedMain;
         } else if (direction.right){
             this.directionRow = 3; //the 4th row of the sprite sheet
-            this.xPos += speed;
+            this.xPos += speedMain;
 
         } else if (direction.left){
             this.directionRow = 1; //the 2nd row of the sprite sheet
-            this.xPos -= speed;
+            this.xPos -= speedMain;
         }
 
         
@@ -105,10 +106,10 @@ class MainCharacter{
         
 
         //to prioritize certain movement
-        if (direction.up) this.yPos-= speed;
-        else if (direction.down) this.yPos+=speed;
-        else if (direction.left) this.xPos-=speed;
-        else if (direction.right) this.xPos+=speed;
+        if (direction.up) this.yPos-= speedMain;
+        else if (direction.down) this.yPos+=speedMain;
+        else if (direction.left) this.xPos-=speedMain;
+        else if (direction.right) this.xPos+=speedMain;
 
 
         //make character stay within bound
@@ -169,11 +170,7 @@ class Item{
 let apples = []; // To store the apple objects
 
 function generateApples(numApples) {
-    // for (let i = 0; i < numApples; i++) {//loop through to display each apple
-    //     let xPos = Math.floor(Math.random() * (SCREEN_WIDTH - CHARACTER_WIDTH));
-    //     let yPos = Math.floor(Math.random() * (SCREEN_HEIGHT - CHARACTER_HEIGHT));
-    //     apples.push(new Item("assets/sprites/appleSprites.png",xPos, yPos));// Add a new apple at a random position
-    // }
+    
     for (let i = 0; i < numApples; i++) {
         let xPos, yPos;
         let overlapping;
@@ -356,15 +353,15 @@ function drawScreen(){
     apples.forEach(apple => {
         apple.draw();
     });
-}
-
-let ghost = new Enemy("pacmanGhost", 10,10);
 
     loops++;
     enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
-    drawEnemies(loops);
+    drawEnemies();
 }
+
+
+
 
 
 setUp();
