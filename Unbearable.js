@@ -48,7 +48,7 @@ var oldTimeStamp;
 
 
 const speed=5;
-const speedMain=2;
+const speedMain=3; 
 const MAX_HEALTH=100;
 
 
