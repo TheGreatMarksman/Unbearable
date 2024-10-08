@@ -59,6 +59,10 @@ let direction = {
     right: false
 }
 
+let apples = []; // To store the apple objects
+
+var gameEnd = false;
+
 class MainCharacter{
     constructor(link, xPos, yPos){
         this.xPos=xPos;
@@ -232,8 +236,6 @@ class Item{
     }
 
 }
-
-let apples = []; // To store the apple objects
 
 function generateApples(numApples) {
     
@@ -540,10 +542,6 @@ drawScreen();
 
 
 
-setUp();
-//drawScreen();
-
-var gameEnd = false;
 function gameLoop(){
     if(loops == 50) {
         chooseEnemiesMove();
