@@ -23,8 +23,12 @@ else{
     CHARACTER_HEIGHT = CHARACTER_WIDTH;
 }
 
-console.log("screen: " + SCREEN_WIDTH + ", " + SCREEN_HEIGHT);
-console.log("character: " + CHARACTER_WIDTH + ", " + CHARACTER_HEIGHT);
+// So objects will 'start' at xPos + CHARACTER_WIDTH/3 and end at xPos + CHARACTER_WIDTH/3
+const OBJECT_LENGTH_OFFSET = Math.floor(CHARACTER_WIDTH / 3);
+
+
+//console.log("screen: " + SCREEN_WIDTH + ", " + SCREEN_HEIGHT);
+//console.log("character: " + CHARACTER_WIDTH + ", " + CHARACTER_HEIGHT);
 
 
 document.querySelector('#game').style.width=`${SCREEN_WIDTH}px`;
@@ -143,17 +147,24 @@ class MainCharacter{
 
         if (direction.up){
             this.directionRow = 2; //the 3rd row of sprite sheet
-            this.yPos -= speedMain;
+            if(map.isAvailablePosition(0, -speedMain)){
+                this.yPos -= speedMain;
+            }
         }else if (direction.down){
             this.directionRow = 0; //the 1st row of sprite sheet
-            this.yPos += speedMain;
+            if(map.isAvailablePosition(0, speedMain)){
+                this.yPos += speedMain;
+            }
         } else if (direction.right){
             this.directionRow = 3; //the 4th row of the sprite sheet
-            this.xPos += speedMain;
-
+            if(map.isAvailablePosition(speedMain, 0)){
+                this.xPos += speedMain;
+            }
         } else if (direction.left){
             this.directionRow = 1; //the 2nd row of the sprite sheet
-            this.xPos -= speedMain;
+            if(map.isAvailablePosition(-speedMain, 0)){
+                this.xPos -= speedMain;
+            }
         }
 
         
@@ -165,7 +176,6 @@ class MainCharacter{
             }
             
         }
-
 
 
         //make character stay within bound
@@ -280,6 +290,7 @@ function checkCollisionWithApples() {
             player.yPos < apple.yPos + apple.height &&
             player.yPos + player.height > apple.yPos
         ) {
+
             // Collision detected, remove the apple and replenish health
             apples.splice(i, 1); // Remove the apple from the array
             player.replenishHealth();  // Replenish player's health
@@ -287,6 +298,7 @@ function checkCollisionWithApples() {
 
             // Generate a new apple to maintain 2 apples on screen
             generateApples(1);
+
         }
     }
 }
@@ -369,7 +381,7 @@ class Enemy {
         //sens is is the sensitity of the collision detection - smaller sens == collision from farther away, vice versa
         var sens = 10;
         if(Math.abs(this.xPos - player.xPos + sens) <= CHARACTER_WIDTH && Math.abs(this.yPos - player.yPos + sens) <=CHARACTER_HEIGHT) {
-            console.log("collision with enemy");
+            //console.log("collision with enemy");
             return true;
         }
         else {
@@ -384,6 +396,26 @@ class Map{
         for(let i = 0; i < tiles.length; i++)
             this.tiles[i] = tiles[i];
     }
+    
+    isAvailablePosition(xMove, yMove){
+        for(let i = 0; i < this.tiles.length; i++){
+            if(this.tiles[i].type != "tree")
+                continue;
+            let charLeft = player.xPos + xMove;
+            let charRight = charLeft + CHARACTER_WIDTH;
+            let charTop = player.yPos + yMove;
+            let charDown = charTop + CHARACTER_HEIGHT;
+            let left = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET;
+            let right = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET * 2;
+            let top = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET;
+            let down = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET * 2;
+            if(charLeft < right && charRight > left && charTop < down && charDown > top){
+                return false;
+            }
+        }
+        return true;
+    }
+    
     draw(){
         for(let i = 0; i < this.tiles.length; i++)
             this.tiles[i].draw();
@@ -391,8 +423,9 @@ class Map{
 }
 
 class Tile{
-    constructor(link, xPos, yPos){
+    constructor(link, type, xPos, yPos){
         this.link = link;
+        this.type = type;
         this.xPos = xPos;
         this.yPos = yPos;
         this.width = CHARACTER_WIDTH;
@@ -427,7 +460,7 @@ function checkEnemyCollisions() {
     var shouldEnd = false;
     enemies.forEach((e) => {
         if(e.checkCollisions() == true) {
-            console.log("should end gameloop here.");
+            //console.log("should end gameloop here.");
             shouldEnd = true;
         }
     });
@@ -443,7 +476,7 @@ function setUp(){
     map = new Map(makeTiles());
 
    
-    player = new MainCharacter("assets/sprites/bearSprites.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
+    player = new MainCharacter("assets/sprites/bearSprites.png", 0, 0);
 
 
     enemies[0] = new Enemy("default", 1000,1000,1);
@@ -474,8 +507,10 @@ function setUp(){
 
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
     ctx.fillStyle= 'rgb(15,205,94)';
     ctx.fillRect(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+
     map.draw();
 
     player.draw();
@@ -491,7 +526,7 @@ function drawScreen(){
     //every 10 loops, enemies choose a new direction
     drawEnemies();
 
-    
+
 }
 
 
@@ -534,10 +569,10 @@ function gameLoop(){
     drawScreen();
     //if colliding with an enemy, break out of the gameloop
     if(checkEnemyCollisions() == true) {
-        console.log("setting gameEnd to true");
+        //console.log("setting gameEnd to true");
         gameEnd = true;
     }
-    console.log("gameEnd value: " + gameEnd);
+    //console.log("gameEnd value: " + gameEnd);
     if(!gameEnd) {
         requestAnimationFrame(gameLoop);//request for the next frame
     }
@@ -610,16 +645,16 @@ function makeTiles(){
 
     for(let i = 0; i < mapString.length; i++){
         if(mapString.charAt(i) == 0){
-            tiles.push(new Tile(grassPicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(grassPicture, "grass", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
         else if(mapString.charAt(i) == 1){
-            tiles.push(new Tile(treePicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(treePicture, "tree", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
         else if(mapString.charAt(i) == 3){
-            tiles.push(new Tile(waterPicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(waterPicture, "water", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
         else if(mapString.charAt(i) == 4){
-            tiles.push(new Tile(cavePicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(cavePicture, "cave", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
     }
     return tiles;
