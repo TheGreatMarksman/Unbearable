@@ -9,9 +9,6 @@ const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 14));
 var CHARACTER_WIDTH;
 var CHARACTER_HEIGHT;
 
-let testPointRectColor = null;
-let testHitBoxColor = null;
-
 let tileWidth = Math.floor(SCREEN_WIDTH / 14);
 let tileHeight = Math.floor(SCREEN_HEIGHT / 7);
 if(tileWidth > tileHeight){
@@ -108,22 +105,22 @@ class MainCharacter{
 
         if (direction.up){
             this.directionRow = 2; //the 3rd row of sprite sheet
-            if(map.isAvailablePosition(this.xPos + CHARACTER_WIDTH/2, this.yPos - speedMain)){
+            if(map.isAvailablePosition(0, -speedMain)){
                 this.yPos -= speedMain;
             }
         }else if (direction.down){
             this.directionRow = 0; //the 1st row of sprite sheet
-            if(map.isAvailablePosition(this.xPos + CHARACTER_WIDTH/2, this.yPos + speedMain)){
+            if(map.isAvailablePosition(0, speedMain)){
                 this.yPos += speedMain;
             }
         } else if (direction.right){
             this.directionRow = 3; //the 4th row of the sprite sheet
-            if(map.isAvailablePosition(this.xPos + speedMain, this.yPos + CHARACTER_WIDTH/2)){
+            if(map.isAvailablePosition(speedMain, 0)){
                 this.xPos += speedMain;
             }
         } else if (direction.left){
             this.directionRow = 1; //the 2nd row of the sprite sheet
-            if(map.isAvailablePosition(this.xPos - speedMain, this.yPos + CHARACTER_WIDTH/2)){
+            if(map.isAvailablePosition(-speedMain, 0)){
                 this.xPos -= speedMain;
             }
         }
@@ -348,17 +345,19 @@ class Map{
             this.tiles[i] = tiles[i];
     }
     
-    isAvailablePosition(x, y){
+    isAvailablePosition(xMove, yMove){
         for(let i = 0; i < this.tiles.length; i++){
+            if(this.tiles[i].type != "tree")
+                continue;
+            let charLeft = player.xPos + xMove;
+            let charRight = charLeft + CHARACTER_WIDTH;
+            let charTop = player.yPos + yMove;
+            let charDown = charTop + CHARACTER_HEIGHT;
             let left = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET;
             let right = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET * 2;
             let top = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET;
             let down = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET * 2;
-            if(x > left && x < right && y > top && y < down){
-                console.log("x: " + x + " y: " + y + " left: " + left + " right: " + right
-                    + " top: " + top + " down: " + down);
-                testHitBoxColor = "blue";
-                testPointRectColor = "red";
+            if(charLeft < right && charRight > left && charTop < down && charDown > top){
                 return false;
             }
         }
@@ -372,8 +371,9 @@ class Map{
 }
 
 class Tile{
-    constructor(link, xPos, yPos){
+    constructor(link, type, xPos, yPos){
         this.link = link;
+        this.type = type;
         this.xPos = xPos;
         this.yPos = yPos;
         this.width = CHARACTER_WIDTH;
@@ -453,13 +453,6 @@ function setUp(){
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    if(testHitBoxColor != null && testPointRectColor != null){
-        ctx.fillStyle = "blue";
-        ctx.fillRect(x, y, 5, 5);
-        ctx.fillStyle = "red";
-        ctx.fillRect(left, top, OBJECT_LENGTH_OFFSET, OBJECT_LENGTH_OFFSET);
-    }
-
     ctx.fillStyle = 'rgb(15, 205, 94)';
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     
@@ -477,6 +470,7 @@ function drawScreen(){
     enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
     drawEnemies();
+
 }
 
 
@@ -590,16 +584,16 @@ function makeTiles(){
 
     for(let i = 0; i < mapString.length; i++){
         if(mapString.charAt(i) == 0){
-            tiles.push(new Tile(grassPicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(grassPicture, "grass", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
         else if(mapString.charAt(i) == 1){
-            tiles.push(new Tile(treePicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(treePicture, "tree", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
         else if(mapString.charAt(i) == 3){
-            tiles.push(new Tile(waterPicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(waterPicture, "water", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
         else if(mapString.charAt(i) == 4){
-            tiles.push(new Tile(cavePicture, toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
+            tiles.push(new Tile(cavePicture, "cave", toTileX(i) * CHARACTER_WIDTH, toTileY(i) * CHARACTER_WIDTH));
         }
     }
     return tiles;
