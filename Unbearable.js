@@ -9,6 +9,9 @@ const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 14));
 var CHARACTER_WIDTH;
 var CHARACTER_HEIGHT;
 
+let testPointRectColor = null;
+let testHitBoxColor = null;
+
 let tileWidth = Math.floor(SCREEN_WIDTH / 14);
 let tileHeight = Math.floor(SCREEN_HEIGHT / 7);
 if(tileWidth > tileHeight){
@@ -20,8 +23,12 @@ else{
     CHARACTER_HEIGHT = CHARACTER_WIDTH;
 }
 
-console.log("screen: " + SCREEN_WIDTH + ", " + SCREEN_HEIGHT);
-console.log("character: " + CHARACTER_WIDTH + ", " + CHARACTER_HEIGHT);
+// So objects will 'start' at xPos + CHARACTER_WIDTH/3 and end at xPos + CHARACTER_WIDTH/3
+const OBJECT_LENGTH_OFFSET = Math.floor(CHARACTER_WIDTH / 3);
+
+
+//console.log("screen: " + SCREEN_WIDTH + ", " + SCREEN_HEIGHT);
+//console.log("character: " + CHARACTER_WIDTH + ", " + CHARACTER_HEIGHT);
 
 
 document.querySelector('#game').style.width=`${SCREEN_WIDTH}px`;
@@ -101,17 +108,24 @@ class MainCharacter{
 
         if (direction.up){
             this.directionRow = 2; //the 3rd row of sprite sheet
-            this.yPos -= speedMain;
+            if(map.isAvailablePosition(this.xPos + CHARACTER_WIDTH/2, this.yPos - speedMain)){
+                this.yPos -= speedMain;
+            }
         }else if (direction.down){
             this.directionRow = 0; //the 1st row of sprite sheet
-            this.yPos += speedMain;
+            if(map.isAvailablePosition(this.xPos + CHARACTER_WIDTH/2, this.yPos + speedMain)){
+                this.yPos += speedMain;
+            }
         } else if (direction.right){
             this.directionRow = 3; //the 4th row of the sprite sheet
-            this.xPos += speedMain;
-
+            if(map.isAvailablePosition(this.xPos + speedMain, this.yPos + CHARACTER_WIDTH/2)){
+                this.xPos += speedMain;
+            }
         } else if (direction.left){
             this.directionRow = 1; //the 2nd row of the sprite sheet
-            this.xPos -= speedMain;
+            if(map.isAvailablePosition(this.xPos - speedMain, this.yPos + CHARACTER_WIDTH/2)){
+                this.xPos -= speedMain;
+            }
         }
 
         
@@ -123,14 +137,6 @@ class MainCharacter{
             }
             
         }
-
-
-        //to prioritize certain movement
-        if (direction.up) this.yPos-= speedMain;
-        else if (direction.down) this.yPos+=speedMain;
-        else if (direction.left) this.xPos-=speedMain;
-        else if (direction.right) this.xPos+=speedMain;
-
 
         //make character stay within bound
         if(this.xPos<0) this.xPos=0;
@@ -243,7 +249,7 @@ function checkCollisionWithApples() {
             // Collision detected, remove the apple and increase hunger
             apples.splice(index, 1); // Remove the apple from the array
             player.hunger++;// Increase hunger
-            console.log(`Hunger: ${player.hunger}`); // Log hunger for debugging
+            //console.log(`Hunger: ${player.hunger}`); // Log hunger for debugging
         }
     });
 }
@@ -326,7 +332,7 @@ class Enemy {
         //sens is is the sensitity of the collision detection - smaller sens == collision from farther away, vice versa
         var sens = 10;
         if(Math.abs(this.xPos - player.xPos + sens) <= CHARACTER_WIDTH && Math.abs(this.yPos - player.yPos + sens) <=CHARACTER_HEIGHT) {
-            console.log("collision with enemy");
+            //console.log("collision with enemy");
             return true;
         }
         else {
@@ -341,6 +347,24 @@ class Map{
         for(let i = 0; i < tiles.length; i++)
             this.tiles[i] = tiles[i];
     }
+    
+    isAvailablePosition(x, y){
+        for(let i = 0; i < this.tiles.length; i++){
+            let left = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET;
+            let right = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET * 2;
+            let top = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET;
+            let down = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET * 2;
+            if(x > left && x < right && y > top && y < down){
+                console.log("x: " + x + " y: " + y + " left: " + left + " right: " + right
+                    + " top: " + top + " down: " + down);
+                testHitBoxColor = "blue";
+                testPointRectColor = "red";
+                return false;
+            }
+        }
+        return true;
+    }
+    
     draw(){
         for(let i = 0; i < this.tiles.length; i++)
             this.tiles[i].draw();
@@ -384,7 +408,7 @@ function checkEnemyCollisions() {
     var shouldEnd = false;
     enemies.forEach((e) => {
         if(e.checkCollisions() == true) {
-            console.log("should end gameloop here.");
+            //console.log("should end gameloop here.");
             shouldEnd = true;
         }
     });
@@ -400,7 +424,7 @@ function setUp(){
     map = new Map(makeTiles());
 
    
-    player = new MainCharacter("assets/sprites/bearSprites.png", CHARACTER_WIDTH, CHARACTER_HEIGHT);
+    player = new MainCharacter("assets/sprites/bearSprites.png", 0, 0);
 
 
     enemies[0] = new Enemy("default", 1000,1000,1);
@@ -428,6 +452,16 @@ function setUp(){
 
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    if(testHitBoxColor != null && testPointRectColor != null){
+        ctx.fillStyle = "blue";
+        ctx.fillRect(x, y, 5, 5);
+        ctx.fillStyle = "red";
+        ctx.fillRect(left, top, OBJECT_LENGTH_OFFSET, OBJECT_LENGTH_OFFSET);
+    }
+
+    ctx.fillStyle = 'rgb(15, 205, 94)';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     
     map.draw();
 
@@ -480,10 +514,10 @@ function gameLoop(){
     drawScreen();
     //if colliding with an enemy, break out of the gameloop
     if(checkEnemyCollisions() == true) {
-        console.log("setting gameEnd to true");
+        //console.log("setting gameEnd to true");
         gameEnd = true;
     }
-    console.log("gameEnd value: " + gameEnd);
+    //console.log("gameEnd value: " + gameEnd);
     if(!gameEnd) {
         requestAnimationFrame(gameLoop);//request for the next frame
     }
