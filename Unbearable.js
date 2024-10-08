@@ -9,6 +9,9 @@ const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 14));
 var CHARACTER_WIDTH;
 var CHARACTER_HEIGHT;
 
+// var gameOverImage = new image();
+// gameOverImage.src= "assets/sprites/endgame.png"
+
 let tileWidth = Math.floor(SCREEN_WIDTH / 14);
 let tileHeight = Math.floor(SCREEN_HEIGHT / 7);
 if(tileWidth > tileHeight){
@@ -46,6 +49,7 @@ var oldTimeStamp;
 
 const speed=5;
 const speedMain=2;
+const MAX_HEALTH=100;
 
 
 let direction = {
@@ -61,7 +65,8 @@ class MainCharacter{
         this.yPos=yPos;
         this.width= CHARACTER_WIDTH;
         this.height= CHARACTER_HEIGHT;
-
+        this.maxHealth=MAX_HEALTH;
+        this.health=this.maxHealth;
         this.hunger=0;
 
         this.image = new Image();
@@ -84,7 +89,42 @@ class MainCharacter{
 
     }
 
+    drawHealthBar(){
+        const healthBarHeight=CHARACTER_HEIGHT/4;
+        const healthBarWidth=CHARACTER_WIDTH;
+        const outlineColor= 'black';
+        const fillColor= 'red';
 
+        //calculating health
+        const healthPercentage= Math.max(0, this.health / this.maxHealth); //to keep it between 0 and 1
+        const currentHealthWidth= healthPercentage*healthBarWidth;
+
+        //the position of health bar
+        const xBarPos=10;
+        const yBarPos=10;
+
+        //drawing outline
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeRect(xBarPos,yBarPos,healthBarWidth,healthBarHeight);
+
+        //drawing fill
+        ctx.fillStyle= fillColor;
+        ctx.fillRect(xBarPos,yBarPos,currentHealthWidth,healthBarHeight);
+
+    }
+
+    // Method to decrease health over time
+    decreaseHealth() {
+        if (this.health > 0) {
+            this.health -= 0.1;  // Gradually decrease health
+        }else {
+            gameEnd=true;
+        }
+    }
+
+    replenishHealth(){
+        this.health=this.maxHealth;
+    }
 
     draw(){
         
@@ -98,8 +138,10 @@ class MainCharacter{
             ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, this.xPos, this.yPos, this.width, this.height);
         }
 
+        this.drawHealthBar();
 
     }
+
 
     move(){
 
@@ -134,6 +176,7 @@ class MainCharacter{
             }
             
         }
+
 
         //make character stay within bound
         if(this.xPos<0) this.xPos=0;
@@ -236,19 +279,28 @@ function generateApples(numApples) {
 }
 
 function checkCollisionWithApples() {
-    apples.forEach((apple, index) => {
+    
+
+    // Iterate backwards to safely remove items while iterating
+    for (let i = apples.length - 1; i >= 0; i--) {
+        let apple = apples[i];
         if (
             player.xPos < apple.xPos + apple.width &&
             player.xPos + player.width > apple.xPos &&
             player.yPos < apple.yPos + apple.height &&
             player.yPos + player.height > apple.yPos
         ) {
-            // Collision detected, remove the apple and increase hunger
-            apples.splice(index, 1); // Remove the apple from the array
-            player.hunger++;// Increase hunger
-            //console.log(`Hunger: ${player.hunger}`); // Log hunger for debugging
+
+            // Collision detected, remove the apple and replenish health
+            apples.splice(i, 1); // Remove the apple from the array
+            player.replenishHealth();  // Replenish player's health
+            console.log(`Health replenished to full`);
+
+            // Generate a new apple to maintain 2 apples on screen
+            generateApples(1);
+
         }
-    });
+    }
 }
 
 class Enemy {
@@ -438,11 +490,14 @@ function setUp(){
  
     
 
-    // Generate 4 apples
-    generateApples(4);
+    // Generate 2 apples
+    generateApples(1);
 
+    // gameOverImage.onload = () => {
+    //     requestAnimationFrame(gameLoop);//start loop 
+    // }
 
-    requestAnimationFrame(gameLoop);//start loop 
+    requestAnimationFrame(gameLoop);//start loop
     window.addEventListener('keydown',keyMovementDown);//for keydown events
     window.addEventListener('keyup',keyMovementUp);//for keyup events
 
@@ -453,9 +508,9 @@ function setUp(){
 function drawScreen(){
     ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    ctx.fillStyle = 'rgb(15, 205, 94)';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+    ctx.fillStyle= 'rgb(15,205,94)';
+    ctx.fillRect(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+
     map.draw();
 
     player.draw();
@@ -470,6 +525,7 @@ function drawScreen(){
     enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
     drawEnemies();
+
 
 }
 
@@ -496,8 +552,13 @@ function gameLoop(){
     if(enemyAnimationCounter == 30) {
         enemyAnimationCounter = 0;
     }
+
     moveEnemies();
     player.move();
+
+    //decrease health overtime
+    player.decreaseHealth();
+
     checkCollisionWithApples(); // Check if the player collides with any apples
 
     // Update apple animations
