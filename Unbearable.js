@@ -151,22 +151,22 @@ class MainCharacter{
 
         if (direction.up){
             this.directionRow = 2; //the 3rd row of sprite sheet
-            if(map.isAvailablePosition(0, -speedMain)){
+            if(map.isAvailablePosition(this.xPos, this.yPos - speedMain)){
                 this.yPos -= speedMain;
             }
         }else if (direction.down){
             this.directionRow = 0; //the 1st row of sprite sheet
-            if(map.isAvailablePosition(0, speedMain)){
+            if(map.isAvailablePosition(this.xPos, this.yPos + speedMain)){
                 this.yPos += speedMain;
             }
         } else if (direction.right){
             this.directionRow = 3; //the 4th row of the sprite sheet
-            if(map.isAvailablePosition(speedMain, 0)){
+            if(map.isAvailablePosition(this.xPos + speedMain, this.yPos)){
                 this.xPos += speedMain;
             }
         } else if (direction.left){
             this.directionRow = 1; //the 2nd row of the sprite sheet
-            if(map.isAvailablePosition(-speedMain, 0)){
+            if(map.isAvailablePosition(this.xPos - speedMain, this.yPos)){
                 this.xPos -= speedMain;
             }
         }
@@ -370,13 +370,15 @@ class Enemy {
         };
     }
     move(){
-        this.xPos += this.xSpeed;
-        this.yPos += this.ySpeed;
-        //if out of bounds, reset location (player gets stuck at walls)
-        if(this.xPos<0) this.xPos=0;
-        if(this.yPos<0) this.yPos=0;
-        if(this.xPos + this.width > SCREEN_WIDTH) this.xPos= SCREEN_WIDTH-this.width;
-        if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
+        if(map.isAvailablePosition(this.xPos + this.xSpeed, this.yPos + this.ySpeed)){
+            this.xPos += this.xSpeed;
+            this.yPos += this.ySpeed;
+            //if out of bounds, reset location (player gets stuck at walls)
+            if(this.xPos<0) this.xPos=0;
+            if(this.yPos<0) this.yPos=0;
+            if(this.xPos + this.width > SCREEN_WIDTH) this.xPos= SCREEN_WIDTH-this.width;
+            if(this.yPos + this.height > SCREEN_HEIGHT) this.yPos= SCREEN_HEIGHT- this.height;
+        }
         
     }
     checkCollisions() {
@@ -399,14 +401,15 @@ class Map{
             this.tiles[i] = tiles[i];
     }
     
-    isAvailablePosition(xMove, yMove){
+    isAvailablePosition(xPos, yPos){
+        // Used for both player and enemies
         for(let i = 0; i < this.tiles.length; i++){
             if(this.tiles[i].type != "tree")
                 continue;
-            let charLeft = player.xPos + xMove;
-            let charRight = charLeft + CHARACTER_WIDTH;
-            let charTop = player.yPos + yMove;
-            let charDown = charTop + CHARACTER_HEIGHT;
+            let charLeft = xPos;
+            let charRight = xPos + CHARACTER_WIDTH;
+            let charTop = yPos;
+            let charDown = yPos + CHARACTER_HEIGHT;
             let left = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET;
             let right = this.tiles[i].xPos + OBJECT_LENGTH_OFFSET * 2;
             let top = this.tiles[i].yPos + OBJECT_LENGTH_OFFSET;
@@ -417,7 +420,14 @@ class Map{
         }
         return true;
     }
-    
+    getCavePosition(){
+        for(let i = 0; i < this.tiles.length; i++){
+            if(this.tiles[i].type == "cave"){
+                return [this.tiles[i].xPos, this.tiles[i].yPos];
+            }
+        }
+        return [1000, 1000];
+    }
     draw(){
         for(let i = 0; i < this.tiles.length; i++)
             this.tiles[i].draw();
@@ -480,10 +490,11 @@ function setUp(){
    
     player = new MainCharacter("assets/sprites/bearSprites.png", 0, 0);
 
-
-    enemies[0] = new Enemy("default", 1000,1000,1);
-    enemies[1] = new Enemy("default", 1000,1000,1);
-    enemies[2] = new Enemy("default", 1000,1100,1);
+    let position = map.getCavePosition();
+    console.log(position);
+    enemies[0] = new Enemy("default", position[0], position[1],1);
+    enemies[1] = new Enemy("default", position[0], position[1],1);
+    enemies[2] = new Enemy("default", position[0], position[1],1);
 
     drawEnemies();
 
@@ -665,3 +676,4 @@ function toTileX(stringIndex){
 function toTileY(stringIndex){
     return (Math.floor(stringIndex / 14));
 }
+
