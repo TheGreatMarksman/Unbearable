@@ -40,7 +40,8 @@ var enemies = [3];
 var canvas;
 var ctx;
 var map;
-
+var milliseconds = 0;
+var score = 0;
 
 var enemyAnimationCounter = 0;
 var oldTimeStamp;
@@ -296,7 +297,7 @@ function checkCollisionWithApples() {
             // Collision detected, remove the apple and replenish health
             apples.splice(i, 1); // Remove the apple from the array
             player.replenishHealth();  // Replenish player's health
-            console.log(`Health replenished to full`);
+            //console.log(`Health replenished to full`);
 
             // Generate a new apple to maintain 2 apples on screen
             generateApples(1);
@@ -491,7 +492,6 @@ function setUp(){
     player = new MainCharacter("assets/sprites/bearSprites.png", 0, 0);
 
     let position = map.getCavePosition();
-    console.log(position);
     enemies[0] = new Enemy("default", position[0], position[1],1);
     enemies[1] = new Enemy("default", position[0], position[1],1);
     enemies[2] = new Enemy("default", position[0], position[1],1);
@@ -533,13 +533,13 @@ function drawScreen(){
         apple.draw();
     });
 
-
+    milliseconds++;
     loops++;
     enemyAnimationCounter++;
     //every 10 loops, enemies choose a new direction
     drawEnemies();
 
-
+    drawScore();
 }
 
 
@@ -554,6 +554,10 @@ drawScreen();
 
 
 function gameLoop(){
+    if(milliseconds >= 100){
+        score++;
+        milliseconds = 0;
+    }
     if(loops == 50) {
         chooseEnemiesMove();
         loops = 0;
@@ -677,3 +681,7 @@ function toTileY(stringIndex){
     return (Math.floor(stringIndex / 14));
 }
 
+function drawScore(){
+    ctx.font = "30px Arial";
+    ctx.fillText(score, SCREEN_WIDTH/2, 30);
+}
