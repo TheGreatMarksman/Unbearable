@@ -8,7 +8,7 @@ const SCREEN_HEIGHT = Math.floor(initHeight - (initHeight % 14));
 
 var CHARACTER_WIDTH;
 var CHARACTER_HEIGHT;
-
+// kenotn was er
 // var gameOverImage = new image();
 // gameOverImage.src= "assets/sprites/endgame.png"
 
