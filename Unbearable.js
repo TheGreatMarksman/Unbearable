@@ -547,7 +547,7 @@ function drawScreen(){
 
 
 
-alert("Use WASD to move up, left, down and right. Hunt the red apples before your health bar runs out, and avoid the black bears.");
+alert("Use WASD to move up, left, down and right. Hunt the red apples before your health bar runs out and avoid the black bears.");
 setUp();
 drawScreen();
 
