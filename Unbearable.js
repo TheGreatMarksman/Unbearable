@@ -346,6 +346,34 @@ class Enemy {
     }
     //the enemy chooses which direction it will move in
     chooseMove(){
+        while(true){
+            let choice = Math.floor(Math.random() * (4) + 1);
+            switch(choice) {
+                //move north
+                case 1:
+                    this.ySpeed = this.speed;
+                    this.xSpeed = 0;
+                    break;
+                //move south
+                case 2:
+                    this.ySpeed = -this.speed;
+                    this.xSpeed = 0;
+                    break;
+                //move east
+                case 3:
+                    this.xSpeed = this.speed;
+                    this.ySpeed = 0; 
+                    break;
+                //move west
+                default:
+                    this.xSpeed = -this.speed;
+                    this.ySpeed = 0;
+    
+            };
+            //console.log("available: ", map.isAvailablePosition(this.xPos + this.xSpeed, this.yPos + this.ySpeed));
+            if(map.isAvailablePosition(this.xPos + this.xSpeed, this.yPos + this.ySpeed)) break;
+        }
+        /*
         let choice = Math.floor(Math.random() * (4) + 1);
         switch(choice) {
             //move north
@@ -369,7 +397,10 @@ class Enemy {
                 this.ySpeed = 0;
 
         };
+        */
+        
     }
+
     move(){
         if(map.isAvailablePosition(this.xPos + this.xSpeed, this.yPos + this.ySpeed)){
             this.xPos += this.xSpeed;
@@ -404,6 +435,9 @@ class Map{
     
     isAvailablePosition(xPos, yPos){
         // Used for both player and enemies
+        if(xPos < 0 || xPos + CHARACTER_WIDTH > SCREEN_WIDTH || yPos < 0 || yPos + CHARACTER_HEIGHT > SCREEN_HEIGHT)
+            return false;
+
         for(let i = 0; i < this.tiles.length; i++){
             if(this.tiles[i].type != "tree")
                 continue;
